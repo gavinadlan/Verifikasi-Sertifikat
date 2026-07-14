@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.local
+.env*.local
+!.env.example
+.next/
+out/
+deployments/
+cache/
+artifacts/
+typechain-types/
+.DS_Store
+_git_corrupt_bak/
+tsconfig.tsbuildinfo

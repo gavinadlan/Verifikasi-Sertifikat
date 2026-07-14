@@ -1,0 +1,404 @@
+{
+  "metadata": {
+    "timestamp": "2026-07-09T21:24:10.894Z",
+    "network": "amoy (Chain ID: 80002)",
+    "deployer": "0xc1a2Ab950b696D85Ac3De6E70b8975413517fd9A",
+    "jumlahSertifikat": 50
+  },
+  "tabel_4_7": {
+    "sequential": {
+      "jumlahTransaksi": 50,
+      "konfimasiMetaMask": 50,
+      "totalGas": "13611964",
+      "gasPerSertifikat": "272239",
+      "gasMinimum": "271850",
+      "gasMaksimum": "289814",
+      "totalWaktuMs": 100884,
+      "totalWaktuDetik": "100.9",
+      "retryPerSertifikat": "Ya",
+      "successRate": "100%",
+      "statusTarget": "LULUS"
+    },
+    "batch": {
+      "jumlahTransaksi": 1,
+      "konfirmasiMetaMask": 1,
+      "totalGas": "11623805",
+      "gasPerSertifikat": "232476",
+      "totalWaktuMs": 2638,
+      "totalWaktuDetik": "2.6",
+      "txHash": "0x53f49256cc79b956918a6b0ebfb9d9bc28cc17ba0e9cba53d041535454d245b2",
+      "retryPerSertifikat": "Tidak",
+      "successRate": "100%",
+      "statusTarget": "LULUS"
+    },
+    "perbandingan": {
+      "penghematanGas": "1988159",
+      "penghematanGasPersen": "14.6%",
+      "rekomendasi": "Sequential dan Batch memiliki efisiensi serupa; Sequential lebih aman untuk error handling."
+    }
+  },
+  "evaluasi_kpi": {
+    "gasPerMint": {
+      "target": "<300.000 gas/mint",
+      "aktual": "272239",
+      "lulus": true
+    },
+    "batchSuccessRate": {
+      "target": "100%",
+      "aktual": "100%",
+      "lulus": true
+    }
+  },
+  "detail_sequential": [
+    {
+      "tokenId": 1,
+      "gasUsed": "289814",
+      "durationMs": 2715,
+      "txHash": "0xf0a16de2a19dfa1eb6c56c5c7af0a5aceae3b86e0a358b9c6f943b5971239546",
+      "berhasil": true
+    },
+    {
+      "tokenId": 2,
+      "gasUsed": "271874",
+      "durationMs": 1502,
+      "txHash": "0x187a6fc031cb3da7702ca7679082b1b0c4dbb21d62138a4cf5d6ab4d17488bc0",
+      "berhasil": true
+    },
+    {
+      "tokenId": 3,
+      "gasUsed": "271850",
+      "durationMs": 2345,
+      "txHash": "0x850b8c7772b90319f20e987de39812f1a36c315feffce482eece0b9deba990a9",
+      "berhasil": true
+    },
+    {
+      "tokenId": 4,
+      "gasUsed": "271862",
+      "durationMs": 2359,
+      "txHash": "0x095315a80819918ed2140aadc379084294cf13c9446bc06797defd3e84e37dd1",
+      "berhasil": true
+    },
+    {
+      "tokenId": 5,
+      "gasUsed": "271874",
+      "durationMs": 1454,
+      "txHash": "0x69f7e2a670c9fe5867ec6f1d3498dbc27406f253b0139d97a589f52d3523471b",
+      "berhasil": true
+    },
+    {
+      "tokenId": 6,
+      "gasUsed": "271850",
+      "durationMs": 2384,
+      "txHash": "0x29512f313d2fecb8891aa6268b72c802b0d3ac34f9edcdb1bde561188a06167d",
+      "berhasil": true
+    },
+    {
+      "tokenId": 7,
+      "gasUsed": "271862",
+      "durationMs": 1505,
+      "txHash": "0x012edcf9b1cd04e33763fe0eed2ac4619322f3b1a560b32a891f73b78b168773",
+      "berhasil": true
+    },
+    {
+      "tokenId": 8,
+      "gasUsed": "271862",
+      "durationMs": 2507,
+      "txHash": "0x365ead564f89d6dc473c00a510ead6e08b20f8117c86282017cb3f3dd775a3a1",
+      "berhasil": true
+    },
+    {
+      "tokenId": 9,
+      "gasUsed": "271874",
+      "durationMs": 1449,
+      "txHash": "0xc69f1dc89a5bd30ccbef2f5e244fdd241e837f375261388cf3ba5106bf3b582e",
+      "berhasil": true
+    },
+    {
+      "tokenId": 10,
+      "gasUsed": "271886",
+      "durationMs": 2515,
+      "txHash": "0x2ad7f11f904b292906046ff7ef2956bbface7714bae8e61e623f6b16a3bf73ec",
+      "berhasil": true
+    },
+    {
+      "tokenId": 11,
+      "gasUsed": "271886",
+      "durationMs": 1486,
+      "txHash": "0x6466dc44013b400283effc56cd75171a60b09ff7054879762a74f4ba101d843c",
+      "berhasil": true
+    },
+    {
+      "tokenId": 12,
+      "gasUsed": "271886",
+      "durationMs": 2335,
+      "txHash": "0x0c8d0348627789544ba45a684349960e47924b5f2567729eba006ad5bab776ec",
+      "berhasil": true
+    },
+    {
+      "tokenId": 13,
+      "gasUsed": "271874",
+      "durationMs": 1510,
+      "txHash": "0x86e5c8fed092c63081f50f856acb85c3b9ec8d063af5136a675e4c30976b80c5",
+      "berhasil": true
+    },
+    {
+      "tokenId": 14,
+      "gasUsed": "271886",
+      "durationMs": 2467,
+      "txHash": "0xbd508b48e94e1aad2976fd8fac2f100e1a309efe2c3fe25bb06a078b5daae9ef",
+      "berhasil": true
+    },
+    {
+      "tokenId": 15,
+      "gasUsed": "271886",
+      "durationMs": 1517,
+      "txHash": "0x893e6e0679d4a1a01114229fccc7d4e758df29dd44c85afe4672390422267dee",
+      "berhasil": true
+    },
+    {
+      "tokenId": 16,
+      "gasUsed": "271874",
+      "durationMs": 2362,
+      "txHash": "0x3e1bf35c3c324857e85385d73c6e70a5407b6fa62f400d838c383ddeb06b4c37",
+      "berhasil": true
+    },
+    {
+      "tokenId": 17,
+      "gasUsed": "271886",
+      "durationMs": 2344,
+      "txHash": "0xb3b08b1bccdaefbbd3776c400dd2b069e04ad428effb0db957ae7d1d19730df9",
+      "berhasil": true
+    },
+    {
+      "tokenId": 18,
+      "gasUsed": "271886",
+      "durationMs": 1519,
+      "txHash": "0x41c98a62ccd4dcca925c28cf54b9cab6caed7237b592ecadc3df94e5aa4a9b09",
+      "berhasil": true
+    },
+    {
+      "tokenId": 19,
+      "gasUsed": "271886",
+      "durationMs": 2371,
+      "txHash": "0xbe79c2a0ff3e42de09dfbc2e90d7832c6f60477d7b37998738d0026891e28272",
+      "berhasil": true
+    },
+    {
+      "tokenId": 20,
+      "gasUsed": "271886",
+      "durationMs": 1684,
+      "txHash": "0xec5a653887b3d74625f6b7ae61dae19daa7a9868d93494c2ef33d9a6b7c39ced",
+      "berhasil": true
+    },
+    {
+      "tokenId": 21,
+      "gasUsed": "271886",
+      "durationMs": 2352,
+      "txHash": "0xe2311af13d0423b0dc6bc827a3880df2d45a7028a83da08743a1aae5bfdf4bee",
+      "berhasil": true
+    },
+    {
+      "tokenId": 22,
+      "gasUsed": "271886",
+      "durationMs": 1666,
+      "txHash": "0x9f41ea0fe1f73d7ddfa340d52a16dfb3b8db1ea58f59658dd6d69bbd3b298206",
+      "berhasil": true
+    },
+    {
+      "tokenId": 23,
+      "gasUsed": "271886",
+      "durationMs": 2398,
+      "txHash": "0x19e845ec2e5b060c1745f2ed6f84079ba9b3282f2e1e218fd631536f49824f0e",
+      "berhasil": true
+    },
+    {
+      "tokenId": 24,
+      "gasUsed": "271886",
+      "durationMs": 1273,
+      "txHash": "0x2fdcfbe072d53dbf6991603f8de8842f1dbf19d3f25e05def5539eb5ca923289",
+      "berhasil": true
+    },
+    {
+      "tokenId": 25,
+      "gasUsed": "271874",
+      "durationMs": 2643,
+      "txHash": "0x2e393781610036d161337d2bd8bdccd2ff530c7264b5a7f612cd71c2cf274299",
+      "berhasil": true
+    },
+    {
+      "tokenId": 26,
+      "gasUsed": "271886",
+      "durationMs": 1504,
+      "txHash": "0xf732921c4988280259d2db78d5fbe1107487522eeb363060da464ad5a4155262",
+      "berhasil": true
+    },
+    {
+      "tokenId": 27,
+      "gasUsed": "271886",
+      "durationMs": 2087,
+      "txHash": "0x69c0f7200fe57be0bc56494294e537af63f29e03dc66c40acc183625a2a79f7d",
+      "berhasil": true
+    },
+    {
+      "tokenId": 28,
+      "gasUsed": "271886",
+      "durationMs": 2390,
+      "txHash": "0xc94755c94d85573df588d002433b3161a174b2784643d3cf9ae30bf0550ace26",
+      "berhasil": true
+    },
+    {
+      "tokenId": 29,
+      "gasUsed": "271886",
+      "durationMs": 1691,
+      "txHash": "0xbbcada7e87728487a3d7d9bc9c1e1ce4876f427d79549f04c6457f598d9d2989",
+      "berhasil": true
+    },
+    {
+      "tokenId": 30,
+      "gasUsed": "271874",
+      "durationMs": 2416,
+      "txHash": "0xb00a4189786f1657dd254a5193cd9dea8188072bd92e24406c207e37c035317f",
+      "berhasil": true
+    },
+    {
+      "tokenId": 31,
+      "gasUsed": "271874",
+      "durationMs": 1470,
+      "txHash": "0x026f7ce6d29dc4b997cf45a8e75b26bb4ed070d8513b4bc55d41b09e1d1e2dad",
+      "berhasil": true
+    },
+    {
+      "tokenId": 32,
+      "gasUsed": "271886",
+      "durationMs": 2325,
+      "txHash": "0x7cc30872bcac7295a7264873360f0ef4c8d6c86e94e01489f6d169077e063cca",
+      "berhasil": true
+    },
+    {
+      "tokenId": 33,
+      "gasUsed": "271886",
+      "durationMs": 1465,
+      "txHash": "0xb4b260d05f50b512e4cb122d7b923bc298902018f01809a6350cf94c7521d246",
+      "berhasil": true
+    },
+    {
+      "tokenId": 34,
+      "gasUsed": "271886",
+      "durationMs": 2390,
+      "txHash": "0xe7da739b0d2d1d94c4dd7a6d6b74a8802980e04fc9a4c48f5d2d18974e40f4d4",
+      "berhasil": true
+    },
+    {
+      "tokenId": 35,
+      "gasUsed": "271886",
+      "durationMs": 2401,
+      "txHash": "0x1abb142a51dbadfb72cf544f7f94dd19f1faa1ef16236dc1448932f49be8b439",
+      "berhasil": true
+    },
+    {
+      "tokenId": 36,
+      "gasUsed": "271886",
+      "durationMs": 1478,
+      "txHash": "0x75532a56cd5a71f51b66fdd0391fca0fd65b1e543fbf1c8356dc5916c0ccbca1",
+      "berhasil": true
+    },
+    {
+      "tokenId": 37,
+      "gasUsed": "271886",
+      "durationMs": 2346,
+      "txHash": "0xcae80b82f705ef5971b41a54e2d8435dddb81bd57e2ccaf7f0943bd2d67ac27b",
+      "berhasil": true
+    },
+    {
+      "tokenId": 38,
+      "gasUsed": "271886",
+      "durationMs": 1447,
+      "txHash": "0x3ba32d01e8bc2aa70006caa220b39eb7c267a86b9a9be68aed0a670c72a33b20",
+      "berhasil": true
+    },
+    {
+      "tokenId": 39,
+      "gasUsed": "271886",
+      "durationMs": 2361,
+      "txHash": "0xbb9959d796e7da20332c78c62a45539f74fd0e59a88da7ba3ed6086b2e808d74",
+      "berhasil": true
+    },
+    {
+      "tokenId": 40,
+      "gasUsed": "271886",
+      "durationMs": 1761,
+      "txHash": "0x45844766a8fb21ab1ea4368cd5a8086e42cb3715ae9f20bc77fd6119be96e8d5",
+      "berhasil": true
+    },
+    {
+      "tokenId": 41,
+      "gasUsed": "271886",
+      "durationMs": 2394,
+      "txHash": "0xe5794cc561e0cb8bfae3bd85a5ce465474ab66983525c5a8cc64afd7a3ba9f66",
+      "berhasil": true
+    },
+    {
+      "tokenId": 42,
+      "gasUsed": "271874",
+      "durationMs": 1438,
+      "txHash": "0x2777f30cd2f00484e4e6f7e7f6f2c210d431d97e8547949c12c23a3dda36920f",
+      "berhasil": true
+    },
+    {
+      "tokenId": 43,
+      "gasUsed": "271886",
+      "durationMs": 2458,
+      "txHash": "0x1f8ea1d7e90c6ea22f7c45a8b88ada7bf117928d9bc48dc26dab1a48ad78fe7e",
+      "berhasil": true
+    },
+    {
+      "tokenId": 44,
+      "gasUsed": "271874",
+      "durationMs": 1806,
+      "txHash": "0x23ad9bac797c96c541b67b531de0c3b710bd8905548fe60e6db899196fd6afc0",
+      "berhasil": true
+    },
+    {
+      "tokenId": 45,
+      "gasUsed": "271886",
+      "durationMs": 2320,
+      "txHash": "0x8f8465611e2207178fcad66e1f6000421ec451d29b8914721cb51c7169708233",
+      "berhasil": true
+    },
+    {
+      "tokenId": 46,
+      "gasUsed": "271886",
+      "durationMs": 1478,
+      "txHash": "0x1eaef93dcbf3941877f7bb026e2f6d7c829b3b786efa4183c0136bf0d6656513",
+      "berhasil": true
+    },
+    {
+      "tokenId": 47,
+      "gasUsed": "271886",
+      "durationMs": 2398,
+      "txHash": "0x2bd7bcb38973971b7f4e44f9513422d21408647dbfd71f9c2637391a7d04bcc1",
+      "berhasil": true
+    },
+    {
+      "tokenId": 48,
+      "gasUsed": "271886",
+      "durationMs": 1505,
+      "txHash": "0x8ec5c70e094cae300bfe65039a6c812a6deaf24270106f73a9ce0904245eaa97",
+      "berhasil": true
+    },
+    {
+      "tokenId": 49,
+      "gasUsed": "271886",
+      "durationMs": 2321,
+      "txHash": "0xb6cb89512fd744168fa239f2d7677b725da60538d4fed9f4f41aec6ba875380a",
+      "berhasil": true
+    },
+    {
+      "tokenId": 50,
+      "gasUsed": "271886",
+      "durationMs": 2413,
+      "txHash": "0x786832271f011f0cd0acae7403e88e36902a910c70bb47070ab5371aae5d0044",
+      "berhasil": true
+    }
+  ]
+}
