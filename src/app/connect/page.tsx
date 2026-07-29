@@ -7,6 +7,10 @@ import { useRouter } from 'next/navigation'
 const TARGET_CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID || '80002')
 const TARGET_CHAIN_HEX = `0x${TARGET_CHAIN_ID.toString(16)}`
 const TARGET_RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology'
+// RPC publik untuk DIDAFTARKAN ke wallet. Wallet (Brave/MetaMask) memvalidasi
+// URL ini; URL Alchemy ber-API-key sering ditolak dengan error 'HTTP Status code: -1'.
+// RPC Alchemy tetap dipakai aplikasi untuk membaca data di background.
+const WALLET_RPC_URL = 'https://rpc-amoy.polygon.technology'
 const TARGET_EXPLORER_URL = process.env.NEXT_PUBLIC_POLYGONSCAN_URL || 'https://amoy.polygonscan.com'
 const TARGET_CHAIN_NAME = TARGET_CHAIN_ID === 137 ? 'Polygon Mainnet' : 'Polygon Amoy Testnet'
 
@@ -48,29 +52,36 @@ export default function ConnectPage() {
         // Request accounts
         await window.ethereum.request({ method: 'eth_requestAccounts' })
 
-        // Check & switch to target network from env
-        const chainId = await window.ethereum.request({ method: 'eth_chainId' })
-        if (chainId !== TARGET_CHAIN_HEX) {
-          try {
-            await window.ethereum.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{ chainId: TARGET_CHAIN_HEX }],
-            })
-          } catch (switchErr: unknown) {
-            // Network belum ditambahkan — add it
-            if ((switchErr as { code: number }).code === 4902) {
+        // Pindah ke Polygon Amoy — bersifat best-effort. Kegagalan switch/add
+        // (mis. error 'HTTP Status code: -1' dari Brave Wallet) TIDAK boleh
+        // menggagalkan login: pembacaan data tetap jalan lewat RPC Alchemy.
+        // Pengguna bisa pindah jaringan manual bila diperlukan untuk minting.
+        try {
+          const chainId = await window.ethereum.request({ method: 'eth_chainId' })
+          if (chainId !== TARGET_CHAIN_HEX) {
+            try {
               await window.ethereum.request({
-                method: 'wallet_addEthereumChain',
-                params: [{
-                  chainId: TARGET_CHAIN_HEX,
-                  chainName: TARGET_CHAIN_NAME,
-                  nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
-                  rpcUrls: [TARGET_RPC_URL],
-                  blockExplorerUrls: [TARGET_EXPLORER_URL],
-                }],
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: TARGET_CHAIN_HEX }],
               })
+            } catch (switchErr: unknown) {
+              // Network belum ditambahkan — coba tambahkan (pakai RPC publik)
+              if ((switchErr as { code: number }).code === 4902) {
+                await window.ethereum.request({
+                  method: 'wallet_addEthereumChain',
+                  params: [{
+                    chainId: TARGET_CHAIN_HEX,
+                    chainName: TARGET_CHAIN_NAME,
+                    nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+                    rpcUrls: [WALLET_RPC_URL],
+                    blockExplorerUrls: [TARGET_EXPLORER_URL],
+                  }],
+                })
+              }
             }
           }
+        } catch (netErr) {
+          console.warn('Auto-switch jaringan gagal (diabaikan):', netErr)
         }
 
         router.push('/dashboard')

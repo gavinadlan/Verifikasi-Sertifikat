@@ -111,7 +111,7 @@ export const useWallet = () => {
             params: [{
               chainId: `0x${CHAIN_ID.toString(16)}`,
               chainName: "Polygon Amoy Testnet",
-              rpcUrls: [process.env.NEXT_PUBLIC_RPC_URL],
+              rpcUrls: ["https://rpc-amoy.polygon.technology"], // RPC publik: lebih kompatibel untuk didaftarkan ke wallet daripada URL Alchemy ber-API-key
               nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
               blockExplorerUrls: [process.env.NEXT_PUBLIC_POLYGONSCAN_URL]
             }],
