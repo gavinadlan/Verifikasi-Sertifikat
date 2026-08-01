@@ -552,7 +552,7 @@ export default function StatistikPage() {
                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p className="text-xs text-amber-700">
-                  <span className="font-semibold">Catatan:</span> Verifikasi sertifikat bersifat off-chain (read-only call ke contract) sehingga tidak tercatat sebagai event on-chain. Jumlah verifikasi dilacak secara lokal di browser.
+                  <span className="font-semibold">Catatan:</span> Seluruh metrik pada halaman ini dibaca langsung dari smart contract dan transaksi pada jaringan Polygon Amoy. Proses verifikasi sertifikat juga dilakukan on-chain melalui pemanggilan fungsi <span className="font-mono">isCertificateValid()</span>, <span className="font-mono">exists()</span>, dan verifikasi tanda tangan digital ECDSA terhadap data yang tersimpan di blockchain. Karena pemanggilan tersebut bersifat <span className="italic">view function</span> (tidak mengubah state dan tidak memerlukan gas), aktivitas verifikasi tidak menghasilkan transaksi sehingga jumlah verifikasi publik tidak dapat dihitung dari blockchain.
                 </p>
               </div>
             </>
