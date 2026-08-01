@@ -173,9 +173,18 @@ export function useStatistics() {
                 throw new Error('Blockchain provider unavailable');
             }
             const latestBlock = await provider.getBlockNumber();
-            const startCandidate = latestBlock - Math.max(10, LOG_QUERY_LOOKBACK_BLOCKS || 500);
-            const startBlock = Math.max(CONTRACT_DEPLOY_BLOCK > 0 ? CONTRACT_DEPLOY_BLOCK : 0, startCandidate);
-            const range = Math.max(1, LOG_QUERY_BLOCK_RANGE || 10);
+            // Scan sejak blok deploy contract agar SELURUH riwayat minting terbaca.
+            // Sebelumnya scan hanya LOOKBACK blok terakhir, sehingga event minting
+            // lama tidak ditemukan → total gas, aktivitas, dan grafik selalu 0.
+            // LOG_QUERY_LOOKBACK_BLOCKS kini hanya dipakai sebagai batas bawah
+            // darurat bila CONTRACT_DEPLOY_BLOCK tidak dikonfigurasi.
+            const startBlock =
+                CONTRACT_DEPLOY_BLOCK > 0
+                    ? CONTRACT_DEPLOY_BLOCK
+                    : Math.max(0, latestBlock - Math.max(10, LOG_QUERY_LOOKBACK_BLOCKS || 500));
+            // Rentang besar per request: Alchemy mendukung hingga ribuan blok
+            // sekali query, jauh lebih cepat daripada 10 blok per panggilan.
+            const range = Math.max(1, LOG_QUERY_BLOCK_RANGE >= 1000 ? LOG_QUERY_BLOCK_RANGE : 5000);
             const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
             const logs: any[] = [];
@@ -196,16 +205,26 @@ export function useStatistics() {
                     }
                 }
                 logs.push(...chunk);
-                await sleep(120);
+                await sleep(30);
             }
 
             // 4. Build lightweight event list (no IPFS yet)
+            // Cache timestamp per blok: event dari batch minting berada di blok
+            // yang sama, jadi tanpa cache getBlock() dipanggil puluhan kali untuk
+            // blok yang identik.
+            const blockTimeCache = new Map<number, number>();
             const events: CertificateEvent[] = await Promise.all(
                 logs.map(async (log: any) => {
                     let timestamp = 0;
                     try {
-                        const block = await log.getBlock();
-                        timestamp = block.timestamp;
+                        const cached = blockTimeCache.get(log.blockNumber);
+                        if (cached !== undefined) {
+                            timestamp = cached;
+                        } else {
+                            const block = await log.getBlock();
+                            timestamp = block.timestamp;
+                            blockTimeCache.set(log.blockNumber, timestamp);
+                        }
                     } catch { /* fallback to 0 */ }
 
                     return {
@@ -290,8 +309,14 @@ export function useStatistics() {
             const uniqueRecipients = new Set(events.map((ev) => ev.recipient.toLowerCase())).size;
 
             // 7b. Total gas spent in MATIC from minting transaction receipts
+            // Dedupe berdasarkan transaction hash: satu transaksi batch minting
+            // menghasilkan puluhan event, sehingga tanpa dedupe biaya gas satu
+            // transaksi akan terhitung berulang kali (over-counting).
+            const uniqueTxLogs = Array.from(
+                new Map(logs.map((log: any) => [log.transactionHash, log])).values()
+            );
             const gasResults = await Promise.allSettled(
-                logs.map(async (log: any) => {
+                uniqueTxLogs.map(async (log: any) => {
                     const receipt = await log.getTransactionReceipt();
                     const gasUsed = receipt.gasUsed ?? BigInt(0);
                     const gasPrice = receipt.effectiveGasPrice ?? receipt.gasPrice ?? BigInt(0);
