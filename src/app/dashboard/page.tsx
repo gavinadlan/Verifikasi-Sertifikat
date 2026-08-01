@@ -176,7 +176,9 @@ export default function DashboardPage() {
   const periodDays = period === '7D' ? 7 : period === '30D' ? 30 : 90
   const filteredDaily = (data?.dailyMints ?? []).slice(-Math.min(periodDays, data?.dailyMints?.length ?? 0))
   const chartMinted = filteredDaily.map((d) => d.count)
-  const chartVerified = filteredDaily.map((d) => Math.round(d.count * ((data?.conversionRate ?? 0) / 100)))
+  // Seri kedua dinonaktifkan: tidak ada data verifikasi on-chain yang bisa
+  // dipetakan per hari (verifikasi tidak menghasilkan transaksi blockchain).
+  const chartVerified: number[] = []
   const chartLabels = filteredDaily.map((d, idx) => {
     const date = new Date(`${d.date}T00:00:00`)
     const show = filteredDaily.length <= 7 || idx % Math.max(1, Math.floor(filteredDaily.length / 6)) === 0 || idx === filteredDaily.length - 1
@@ -187,9 +189,15 @@ export default function DashboardPage() {
     { icon: '📄', value: totalSupply.toLocaleString(), label: 'Total Sertifikat Diterbitkan', sub: 'Terverifikasi On-Chain' },
     {
       icon: '✅',
-      value: (data?.totalVerified ?? 0).toLocaleString('id-ID'),
-      label: 'Total Verifikasi Publik',
-      sub: 'Dilacak dari halaman verifikasi',
+      // Metrik on-chain: verifikasi publik tidak dapat dilacak dari blockchain
+      // karena merupakan operasi baca (view function) tanpa transaksi.
+      value: (data?.activeCertificates ?? 0).toLocaleString('id-ID'),
+      label: 'Sertifikat Aktif',
+      sub:
+        (data?.revokedCertificates ?? 0) > 0
+          ? `${data?.revokedCertificates} direvokasi`
+          : 'Valid, belum direvokasi',
+      subColor: (data?.revokedCertificates ?? 0) > 0 ? '#EA580C' : undefined,
     },
     {
       icon: '👥',
@@ -269,10 +277,7 @@ export default function DashboardPage() {
               <span className="w-3 h-0.5 rounded bg-purple-500 inline-block" />
               <span className="text-xs text-slate-500">Diterbitkan</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-0.5 rounded bg-emerald-500 inline-block" />
-              <span className="text-xs text-slate-500">Diverifikasi</span>
-            </div>
+
           </div>
           {isLoading && !data ? (
             <div className="h-36 flex items-center justify-center text-sm text-slate-400">Memuat data blockchain...</div>
