@@ -50,6 +50,12 @@ export interface RecentActivity {
 
 export interface StatisticsData {
     totalMinted: number;
+    // ── Metrik on-chain (menggantikan metrik verifikasi yang tidak terlacak
+    //    di blockchain, karena verifikasi adalah operasi baca/view function) ──
+    activeCertificates: number;     // sertifikat valid (belum direvokasi)
+    revokedCertificates: number;    // sertifikat yang telah direvokasi issuer
+    avgGasPerCertificate: number;   // rata-rata gas (unit) per sertifikat
+    mintTransactionCount: number;   // jumlah transaksi minting (bukti efisiensi batch)
     totalVerified: number;          // tracked via localStorage
     conversionRate: number;         // totalVerified / totalMinted * 100
     avgVerifyTime: number | null;   // not available on-chain → null
@@ -64,8 +70,8 @@ export interface StatisticsData {
 // ── Cache helpers ─────────────────────────────────────────────────
 // Naikkan versi bila struktur/derivasi data berubah, agar cache lama
 // (mis. hasil scan yang gagal dengan nilai 0) tidak dipakai lagi.
-const CACHE_KEY = 'validori_statistics_cache_v2';
-const SUPPLY_KEY = 'validori_last_supply_v2';
+const CACHE_KEY = 'validori_statistics_cache_v3';
+const SUPPLY_KEY = 'validori_last_supply_v3';
 const VERIFY_COUNT_KEY = 'validori_verify_count';
 
 function readCache(): { data: StatisticsData; supply: number } | null {
@@ -390,13 +396,44 @@ export function useStatistics() {
                     timestamp: m!.timestamp,
                 }));
 
-            // 10. Verify count from localStorage
+            // 10a. Status revokasi per token — dibaca langsung dari smart contract.
+            //      Ini menggantikan metrik "verifikasi" yang tidak dapat dihitung
+            //      on-chain (verifikasi = view function, tidak menghasilkan transaksi).
+            let revokedCertificates = 0;
+            const revokeChecks = await Promise.allSettled(
+                events.map((ev) => contract.isRevoked(ev.tokenId))
+            );
+            revokeChecks.forEach((r) => {
+                if (r.status === 'fulfilled' && r.value === true) revokedCertificates++;
+            });
+            const activeCertificates = Math.max(0, events.length - revokedCertificates);
+
+            // 10b. Rata-rata gas per sertifikat (unit gas) — relevan dengan KPI
+            //      konsumsi gas < 300.000 per sertifikat.
+            const gasUnitResults = await Promise.allSettled(
+                uniqueTxHashes.map(async (hash) => {
+                    const receipt = await provider.getTransactionReceipt(hash);
+                    return receipt ? Number(receipt.gasUsed ?? 0) : 0;
+                })
+            );
+            const totalGasUnits = gasUnitResults.reduce(
+                (sum, r) => (r.status === 'fulfilled' ? sum + r.value : sum),
+                0
+            );
+            const avgGasPerCertificate =
+                events.length > 0 ? Math.round(totalGasUnits / events.length) : 0;
+
+            // 10c. Verify count from localStorage (dipertahankan untuk kompatibilitas)
             const totalVerified = getVerifyCount();
             const conversionRate =
                 currentSupply > 0 ? Math.min(100, (totalVerified / currentSupply) * 100) : 0;
 
             const result: StatisticsData = {
                 totalMinted: currentSupply,
+                activeCertificates,
+                revokedCertificates,
+                avgGasPerCertificate,
+                mintTransactionCount: uniqueTxHashes.length,
                 totalVerified,
                 conversionRate: parseFloat(conversionRate.toFixed(1)),
                 avgVerifyTime: null,
