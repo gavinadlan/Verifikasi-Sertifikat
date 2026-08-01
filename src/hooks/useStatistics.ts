@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { getReadOnlyContract } from '@/lib/contract';
-import { IPFS_GATEWAY, CONTRACT_DEPLOY_BLOCK, LOG_QUERY_BLOCK_RANGE, LOG_QUERY_LOOKBACK_BLOCKS } from '@/constants';
+import { IPFS_GATEWAY, CONTRACT_ADDRESS, CONTRACT_DEPLOY_BLOCK, LOG_QUERY_BLOCK_RANGE, LOG_QUERY_LOOKBACK_BLOCKS } from '@/constants';
 
 // ── Types ─────────────────────────────────────────────────────────
 export interface CertificateEvent {
@@ -166,77 +166,103 @@ export function useStatistics() {
                 }
             }
 
-            // 3. Fetch all CertificateMinted events in small block chunks
-            const filter = contract.filters.CertificateMinted();
+            // 3. Ambil seluruh riwayat minting.
+            //    Alchemy free tier membatasi eth_getLogs hanya 10 blok per request,
+            //    sehingga scan per-rentang mustahil untuk jutaan blok. Sebagai
+            //    gantinya dipakai alchemy_getAssetTransfers yang mengembalikan
+            //    seluruh transfer ERC-721 (mint = from 0x0) dalam satu panggilan.
             const provider = contract.runner?.provider;
             if (!provider) {
                 throw new Error('Blockchain provider unavailable');
             }
             const latestBlock = await provider.getBlockNumber();
-            // Scan sejak blok deploy contract agar SELURUH riwayat minting terbaca.
-            // Sebelumnya scan hanya LOOKBACK blok terakhir, sehingga event minting
-            // lama tidak ditemukan → total gas, aktivitas, dan grafik selalu 0.
-            // LOG_QUERY_LOOKBACK_BLOCKS kini hanya dipakai sebagai batas bawah
-            // darurat bila CONTRACT_DEPLOY_BLOCK tidak dikonfigurasi.
-            const startBlock =
-                CONTRACT_DEPLOY_BLOCK > 0
-                    ? CONTRACT_DEPLOY_BLOCK
-                    : Math.max(0, latestBlock - Math.max(10, LOG_QUERY_LOOKBACK_BLOCKS || 500));
-            // Rentang besar per request: Alchemy mendukung hingga ribuan blok
-            // sekali query, jauh lebih cepat daripada 10 blok per panggilan.
-            const range = Math.max(1, LOG_QUERY_BLOCK_RANGE >= 1000 ? LOG_QUERY_BLOCK_RANGE : 5000);
-            const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-            const logs: any[] = [];
-            for (let from = startBlock; from <= latestBlock; from += range) {
-                const to = Math.min(from + range - 1, latestBlock);
-                let chunk: any[] = [];
-                for (let attempt = 0; attempt < 3; attempt++) {
-                    try {
-                        chunk = await contract.queryFilter(filter, from, to);
-                        break;
-                    } catch (e: any) {
-                        const msg = String(e?.message || '');
-                        if (attempt < 2 && (msg.includes('429') || msg.includes('compute units per second'))) {
-                            await sleep(300 * (attempt + 1));
-                            continue;
-                        }
-                        throw e;
-                    }
-                }
-                logs.push(...chunk);
-                await sleep(30);
+            interface MintRecord {
+                tokenId: string;
+                recipient: string;
+                blockNumber: number;
+                transactionHash: string;
+                timestamp: number;
             }
 
-            // 4. Build lightweight event list (no IPFS yet)
-            // Cache timestamp per blok: event dari batch minting berada di blok
-            // yang sama, jadi tanpa cache getBlock() dipanggil puluhan kali untuk
-            // blok yang identik.
-            const blockTimeCache = new Map<number, number>();
-            const events: CertificateEvent[] = await Promise.all(
-                logs.map(async (log: any) => {
-                    let timestamp = 0;
-                    try {
-                        const cached = blockTimeCache.get(log.blockNumber);
-                        if (cached !== undefined) {
-                            timestamp = cached;
-                        } else {
-                            const block = await log.getBlock();
-                            timestamp = block.timestamp;
-                            blockTimeCache.set(log.blockNumber, timestamp);
-                        }
-                    } catch { /* fallback to 0 */ }
+            const fromBlockHex =
+                '0x' + Math.max(0, CONTRACT_DEPLOY_BLOCK > 0 ? CONTRACT_DEPLOY_BLOCK : 0).toString(16);
 
-                    return {
-                        tokenId: log.args.tokenId.toString(),
-                        recipient: log.args.recipient,
-                        tokenURI: log.args.tokenURI,
-                        blockNumber: log.blockNumber,
-                        transactionHash: log.transactionHash,
-                        timestamp,
+            let mints: MintRecord[] = [];
+            try {
+                const transfers: any[] = [];
+                let pageKey: string | undefined;
+                do {
+                    const params: any = {
+                        fromBlock: fromBlockHex,
+                        toBlock: 'latest',
+                        contractAddresses: [CONTRACT_ADDRESS],
+                        category: ['erc721'],
+                        fromAddress: '0x0000000000000000000000000000000000000000',
+                        withMetadata: true,
+                        excludeZeroValue: false,
+                        maxCount: '0x3e8',
                     };
+                    if (pageKey) params.pageKey = pageKey;
+                    const res: any = await (provider as any).send('alchemy_getAssetTransfers', [params]);
+                    transfers.push(...(res?.transfers ?? []));
+                    pageKey = res?.pageKey;
+                } while (pageKey && transfers.length < 5000);
+
+                mints = transfers.map((t: any) => ({
+                    tokenId: BigInt(t.tokenId ?? '0x0').toString(),
+                    recipient: t.to ?? '',
+                    blockNumber: parseInt(t.blockNum, 16),
+                    transactionHash: t.hash,
+                    timestamp: t.metadata?.blockTimestamp
+                        ? Math.floor(new Date(t.metadata.blockTimestamp).getTime() / 1000)
+                        : 0,
+                }));
+            } catch (transferErr) {
+                // Fallback: RPC tanpa dukungan getAssetTransfers — scan log terbatas
+                // pada rentang blok terakhir agar tetap menampilkan sebagian data.
+                console.warn('getAssetTransfers gagal, fallback ke scan log terbatas:', transferErr);
+                const filter = contract.filters.CertificateMinted();
+                const range = Math.max(1, Math.min(LOG_QUERY_BLOCK_RANGE || 10, 10));
+                const lookback = Math.max(10, LOG_QUERY_LOOKBACK_BLOCKS || 500);
+                const startBlock = Math.max(0, latestBlock - lookback);
+                const collected: any[] = [];
+                for (let from = startBlock; from <= latestBlock; from += range) {
+                    const to = Math.min(from + range - 1, latestBlock);
+                    try {
+                        collected.push(...(await contract.queryFilter(filter, from, to)));
+                    } catch { /* abaikan chunk gagal */ }
+                }
+                mints = collected.map((log: any) => ({
+                    tokenId: log.args.tokenId.toString(),
+                    recipient: log.args.recipient,
+                    blockNumber: log.blockNumber,
+                    transactionHash: log.transactionHash,
+                    timestamp: 0,
+                }));
+            }
+
+            // 4. Lengkapi tokenURI hanya untuk event terbaru (dipakai ambil metadata IPFS).
+            //    tokenURI tidak tersedia di getAssetTransfers, jadi dibaca dari contract.
+            const sortedMints = [...mints].sort((a, b) => b.blockNumber - a.blockNumber);
+            const needURI = sortedMints.slice(0, 200);
+            const uriMap = new Map<string, string>();
+            await Promise.allSettled(
+                needURI.map(async (m) => {
+                    try {
+                        uriMap.set(m.tokenId, await contract.tokenURI(m.tokenId));
+                    } catch { /* token mungkin sudah tidak ada */ }
                 })
             );
+
+            const events: CertificateEvent[] = mints.map((m) => ({
+                tokenId: m.tokenId,
+                recipient: m.recipient,
+                tokenURI: uriMap.get(m.tokenId) ?? '',
+                blockNumber: m.blockNumber,
+                transactionHash: m.transactionHash,
+                timestamp: m.timestamp,
+            }));
 
             // Sort descending by block
             const sorted = [...events].sort((a, b) => b.blockNumber - a.blockNumber);
@@ -312,16 +338,16 @@ export function useStatistics() {
             // Dedupe berdasarkan transaction hash: satu transaksi batch minting
             // menghasilkan puluhan event, sehingga tanpa dedupe biaya gas satu
             // transaksi akan terhitung berulang kali (over-counting).
-            const uniqueTxLogs = Array.from(
-                new Map(logs.map((log: any) => [log.transactionHash, log])).values()
+            const uniqueTxHashes = Array.from(
+                new Set(events.map((ev) => ev.transactionHash).filter(Boolean))
             );
             const gasResults = await Promise.allSettled(
-                uniqueTxLogs.map(async (log: any) => {
-                    const receipt = await log.getTransactionReceipt();
+                uniqueTxHashes.map(async (hash) => {
+                    const receipt = await provider.getTransactionReceipt(hash);
+                    if (!receipt) return 0;
                     const gasUsed = receipt.gasUsed ?? BigInt(0);
-                    const gasPrice = receipt.effectiveGasPrice ?? receipt.gasPrice ?? BigInt(0);
-                    const gasCostWei = gasUsed * gasPrice;
-                    return Number(ethers.formatUnits(gasCostWei, 18));
+                    const gasPrice = (receipt as any).effectiveGasPrice ?? (receipt as any).gasPrice ?? BigInt(0);
+                    return Number(ethers.formatUnits(gasUsed * gasPrice, 18));
                 })
             );
             const totalGasMatic = gasResults.reduce((sum, result) => {
