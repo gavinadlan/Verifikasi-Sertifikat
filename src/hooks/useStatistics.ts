@@ -62,8 +62,10 @@ export interface StatisticsData {
 }
 
 // ── Cache helpers ─────────────────────────────────────────────────
-const CACHE_KEY = 'validori_statistics_cache';
-const SUPPLY_KEY = 'validori_last_supply';
+// Naikkan versi bila struktur/derivasi data berubah, agar cache lama
+// (mis. hasil scan yang gagal dengan nilai 0) tidak dipakai lagi.
+const CACHE_KEY = 'validori_statistics_cache_v2';
+const SUPPLY_KEY = 'validori_last_supply_v2';
 const VERIFY_COUNT_KEY = 'validori_verify_count';
 
 function readCache(): { data: StatisticsData; supply: number } | null {
